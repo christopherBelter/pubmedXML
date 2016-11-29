@@ -1,4 +1,21 @@
-extractPubmedXML <- function(theFile) {
+## clean pubmed XML returned from either the reutils or rentrez packages and save the cleaned XML to a new file
+clean_api_xml <- function(infile, outfile) {
+	theData <- readChar(infile, file.info(infile)$size, useBytes = TRUE)
+	theData <- gsub("<?xml version=\"1.0\" ?>", "", theData, fixed = TRUE)
+	theData <- gsub("<!DOCTYPE PubmedArticleSet PUBLIC \"-//NLM//DTD PubMedArticle, 1st January 2016//EN\" \"https://www.ncbi.nlm.nih.gov/corehtml/query/DTD/pubmed_160101.dtd\">", "", theData, fixed = TRUE, useBytes = TRUE)
+	theData <- gsub("<PubmedArticleSet>", "", theData, fixed = TRUE)
+	theData <- gsub("</PubmedArticleSet>", "", theData, fixed = TRUE)
+	theData <- gsub("<U+", "U+", theData)
+	theData <- paste("<?xml version=\"1.0\" ?><!DOCTYPE PubmedArticleSet PUBLIC \"-//NLM//DTD PubMedArticle, 1st January 2016//EN\" \"https://www.ncbi.nlm.nih.gov/corehtml/query/DTD/pubmed_160101.dtd\"><PubmedArticleSet>", theData)
+	theData <- paste(theData, "</PubmedArticleSet>")
+	theData <- iconv(theData, to = "UTF-8", sub = "")
+	writeLines(theData, outfile, sep = " ")
+	return(theData)
+}
+
+## extract a data frame from the cleaned XML
+## Note: does not handle <pubmedBookArticle> documents
+extract_xml <- function(theFile) {
 	library(XML)
 	newData <- xmlParse(theFile)
 	records <- getNodeSet(newData, "//PubmedArticle")
@@ -27,8 +44,10 @@ extractPubmedXML <- function(theFile) {
 	issue <- lapply(records, xpathSApply, ".//JournalIssue/Issue", xmlValue)
 	issue[sapply(issue, is.list)] <- NA
 	issue <- unlist(issue)
-	pages <- xpathSApply(newData,"//MedlinePgn", xmlValue)
-	abstract <- lapply(records, xpathSApply, ".//AbstractText", xmlValue)
+	pages <- lapply(records, xpathSApply, ".//MedlinePgn", xmlValue)
+	pages[sapply(pages, is.list)] <- NA
+	pages <- unlist(pages)
+	abstract <- lapply(records, xpathSApply, ".//Abstract/AbstractText", xmlValue)
 	abstract[sapply(abstract, is.list)] <- NA
 	abstract <- sapply(abstract, paste, collapse = "|")
 	meshHeadings <- lapply(records, xpathSApply, ".//DescriptorName", xmlValue)
@@ -37,11 +56,15 @@ extractPubmedXML <- function(theFile) {
 	grantAgency <- lapply(records, xpathSApply, ".//Grant/Agency", xmlValue)
 	grantAgency[sapply(grantAgency, is.list)] <- NA
 	grantAgency <- sapply(grantAgency, paste, collapse = "|")
+	grantAgency <- sapply(strsplit(grantAgency, "|", fixed = TRUE), unique)
+	grantAgency <- sapply(grantAgency, paste, collapse = "|")
 	grantNumber <- lapply(records, xpathSApply, ".//Grant/GrantID", xmlValue)
 	grantNumber[sapply(grantNumber, is.list)] <- NA
 	grantNumber <- sapply(grantNumber, paste, collapse = "|")
 	grantCountry <- lapply(records, xpathSApply, ".//Grant/Country", xmlValue)
 	grantCountry[sapply(grantCountry, is.list)] <- NA
+	grantCountry <- sapply(grantCountry, paste, collapse = "|")
+	grantCountry <- sapply(strsplit(grantCountry, "|", fixed = TRUE), unique)
 	grantCountry <- sapply(grantCountry, paste, collapse = "|")
 	ptype <- lapply(records, xpathSApply, ".//PublicationType", xmlValue)
 	ptype[sapply(ptype, is.list)] <- NA
