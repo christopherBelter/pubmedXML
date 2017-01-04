@@ -24,7 +24,7 @@ You can then pass the cleanXML object directly into the extract_xml() function b
 
 ## extract_xml()
 
-This function allows you to use R to parse a PubMed XML file into a data frame that you can either work with in R or export to a .csv file.
+This function allows you to use R to parse a PubMed XML file into a data frame that you can either work with in R or export to a .csv file. Note that you can use this function on either XML downloaded via API or XML downloaded through the web interface of PubMed. If the latter, skip the clean_api_xml() function entirely and pass the name of the XML file you donwloaded from the web directly to the extract_xml() function. 
 
 It requires the XML package to be installed in your version of R, so if it isn't, run the following command before using it:
 
