@@ -34,6 +34,7 @@ extract_xml <- function(theFile) {
 	year <- lapply(records, xpathSApply, ".//PubDate/Year", xmlValue) 
 	year[sapply(year, is.list)] <- NA
 	year[which(sapply(year, is.na) == TRUE)] <- lapply(records[which(sapply(year, is.na) == TRUE)], xpathSApply, ".//PubDate/MedlineDate", xmlValue)
+	year <- gsub("[a-z]|[A-Z]|-.*|\\/.*|\\s+", "", year)
 	year <- gsub(" .+", "", year)
 	year <- gsub("-.+", "", year)
 	articletitle <- lapply(records, xpathSApply, ".//ArticleTitle", xmlValue) 
