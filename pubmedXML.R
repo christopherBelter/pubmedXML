@@ -22,6 +22,7 @@ extract_xml <- function(theFile) {
 	pmid <- xpathSApply(newData,"//MedlineCitation/PMID", xmlValue)
 	doi <- lapply(records, xpathSApply, ".//ELocationID[@EIdType = \"doi\"]", xmlValue)
 	doi[sapply(doi, is.list)] <- NA
+	doi <- sapply(doi, paste, collapse = "|")
 	doi <- unlist(doi)
 	authLast <- lapply(records, xpathSApply, ".//Author/LastName", xmlValue)
 	authLast[sapply(authLast, is.list)] <- NA
