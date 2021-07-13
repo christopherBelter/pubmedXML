@@ -22,6 +22,7 @@ extract_xml <- function(theFile) {
 	pmid <- xpathSApply(newData,"//MedlineCitation/PMID", xmlValue)
 	doi <- lapply(records, xpathSApply, ".//ELocationID[@EIdType = \"doi\"]", xmlValue)
 	doi[sapply(doi, is.list)] <- NA
+	doi <- sapply(doi, paste, collapse = "|")
 	doi <- unlist(doi)
 	authLast <- lapply(records, xpathSApply, ".//Author/LastName", xmlValue)
 	authLast[sapply(authLast, is.list)] <- NA
@@ -31,11 +32,13 @@ extract_xml <- function(theFile) {
 	## affiliations <- lapply(records, xpathSApply, ".//Author/AffiliationInfo/Affiliation", xmlValue)
 	## affiliations[sapply(affiliations, is.list)] <- NA
 	## affiliations <- sapply(affiliations, paste, collapse = "|")
-	year <- lapply(records, xpathSApply, ".//PubDate/Year", xmlValue) 
-	year[sapply(year, is.list)] <- NA
-	year[which(sapply(year, is.na) == TRUE)] <- lapply(records[which(sapply(year, is.na) == TRUE)], xpathSApply, ".//PubDate/MedlineDate", xmlValue)
-	year <- gsub(" .+", "", year)
-	year <- gsub("-.+", "", year)
+	year <- lapply(records, xpathSApply, ".//PubDate/Year", xmlValue)
+        year[sapply(year, is.list)] <- NA
+        year[which(sapply(year, is.na) == TRUE)] <- lapply(records[which(sapply(year, is.na) == TRUE)], xpathSApply, ".//PubDate/MedlineDate", xmlValue)
+        # year <- gsub("[a-z]|[A-Z]|-.*|\\/.*|\\s+", "", year)
+        # year <- gsub(" .+", "", year)
+        # year <- gsub("-.+", "", year)
+        year <- unlist(year)
 	articletitle <- lapply(records, xpathSApply, ".//ArticleTitle", xmlValue) 
 	articletitle[sapply(articletitle, is.list)] <- NA
 	articletitle <- unlist(articletitle)
